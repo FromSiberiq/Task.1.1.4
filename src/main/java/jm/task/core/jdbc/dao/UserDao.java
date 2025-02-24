@@ -2,13 +2,10 @@ package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.util.List;
 
-
 public interface UserDao {
-    void createUsersTable();
+     void createUsersTable();
 
     void dropUsersTable();
 
