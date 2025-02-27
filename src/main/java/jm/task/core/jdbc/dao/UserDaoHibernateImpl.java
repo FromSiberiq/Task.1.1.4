@@ -1,92 +1,88 @@
 package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
-import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import java.util.List;
 
-public class UserDaoHibernateImpl implements UserDao {
+import static jm.task.core.jdbc.util.Util.getSessionFactory;
 
-    private static final SessionFactory sessionFactory = Util.getSessionFactory();
+public class UserDaoHibernateImpl implements UserDao {
 
     public UserDaoHibernateImpl() {
     }
 
     @Override
     public void createUsersTable() {
-        String sql = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(50), " +
-                "lastName VARCHAR(50), age INT)";
-        executeUpdate(sql);
+        String sql = "CREATE TABLE IF NOT EXISTS users " +
+                "(id SERIAL PRIMARY KEY, " +
+                "name VARCHAR(100), " +
+                "lastName VARCHAR(100), " +
+                "age INT)";
+        executeUpdate(sql, "Таблица создана.");
     }
 
     @Override
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS users";
-        executeUpdate(sql);
+        executeUpdate(sql, "Таблица удалена.");
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        User user = new User(name, lastName, age);
-        Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
+        try (Session session = getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
+            User user = new User(name, lastName, age);
             session.save(user);
             transaction.commit();
+            System.out.println("Пользователь добавлен: " + name);
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            System.err.println("Ошибка при сохранении пользователя: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @Override
     public void removeUserById(long id) {
-        Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
+        try (Session session = getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
             User user = session.get(User.class, id);
             if (user != null) {
                 session.delete(user);
-                System.out.println("User with id " + id + " removed");
+                System.out.println("Пользователь удален: " + id);
+            } else {
+                System.out.println("Пользователь не найден.");
             }
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
             e.printStackTrace();
         }
     }
 
     @Override
     public List<User> getAllUsers() {
-        try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("FROM User", User.class).list();
+        try (Session session = getSessionFactory().openSession()) {
+            List<User> users = session.createQuery("FROM User", User.class).list();
+            System.out.println("Пользователи получены успешно.");
+            return users;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
     @Override
     public void cleanUsersTable() {
-        String sql = "DELETE FROM users";
-        executeUpdate(sql);
+        executeUpdate("DELETE FROM users", "Таблица очищена.");
     }
 
-    private void executeUpdate(String sql) {
-        Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
+    private void executeUpdate(String sql, String successMessage) {
+        try (Session session = getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
             session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
+            System.out.println(successMessage);
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
             e.printStackTrace();
         }
     }

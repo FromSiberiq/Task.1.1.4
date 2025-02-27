@@ -1,27 +1,32 @@
 package jm.task.core.jdbc.model;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 
-@Table(name = "users")
 @Entity
-public class User {
+@Table(name = "users")
+public class User implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "lastName")
+    @Column(name = "lastname", nullable = false, length = 100)
     private String lastName;
 
-    @Column(name = "age")
+    @Column(name = "age", nullable = false)
     private byte age;
 
     public User() {
     }
 
-    public User(String name, String lastName, Byte age) {
+    public User(String name, String lastName, byte age) {
         this.name = name;
         this.lastName = lastName;
         this.age = age;
@@ -51,11 +56,11 @@ public class User {
         this.lastName = lastName;
     }
 
-    public Byte getAge() {
+    public byte getAge() {
         return age;
     }
 
-    public void setAge(Byte age) {
+    public void setAge(byte age) {
         this.age = age;
     }
 
